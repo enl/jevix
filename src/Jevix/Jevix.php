@@ -57,7 +57,8 @@
 
 require_once(dirname(__FILE__).'/Util.php');
 
-class Jevix{
+class Jevix
+{
 	const PRINATABLE  = 0x1;
 	const ALPHA       = 0x2;
 	const LAT         = 0x4;	

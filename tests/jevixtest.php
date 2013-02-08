@@ -5,7 +5,7 @@
  * За помощь в написании примера спасибо Александру (http://vaart.habrahabr.ru, indrid@mail.ru)
  */
 
-require_once(dirname(__FILE__).'/../src/Jevix/jevix.class.php');
+require_once(dirname(__FILE__).'/../src/Jevix/Jevix.php');
 
 $jevix = new Jevix();
 
