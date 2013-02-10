@@ -1,4 +1,7 @@
 <?php
+
+namespace Jevix;
+
 /**
  * Jevix — средство автоматического применения правил набора текстов, 
  * наделённое способностью унифицировать разметку HTML/XML документов, 
@@ -640,7 +643,7 @@ class Jevix
 		
 		$isTagClose = $this->tagClose($closeTag);
 		if($isTagClose && ($tag != $closeTag)) {
-			$this->eror("Неверный закрывающийся тег $closeTag. Ожидалось закрытие $tag");
+			$this->error("Неверный закрывающийся тег $closeTag. Ожидалось закрытие $tag");
 			//$this->restoreState();
 		}
 		
@@ -831,7 +834,7 @@ class Jevix
 			
 			// Если есть список разрешённых параметров тега
 			if(is_array($paramAllowedValues) && !in_array($value, $paramAllowedValues)) {
-				$this->eror("Недопустимое значение для атрибута тега $tag $param=$value");
+				$this->error("Недопустимое значение для атрибута тега $tag $param=$value");
 				continue;
 			// Если атрибут тега помечен как разрешённый, но правила не указаны - смотрим в массив стандартных правил для атрибутов
 			} elseif($paramAllowedValues === true && !empty($this->defaultTagParamRules[$param])){
@@ -842,7 +845,7 @@ class Jevix
 				switch($paramAllowedValues){
 					case '#int':
 						if(!is_numeric($value)) {
-							$this->eror("Недопустимое значение для атрибута тега $tag $param=$value. Ожидалось число");
+							$this->error("Недопустимое значение для атрибута тега $tag $param=$value. Ожидалось число");
 							continue(2);
 						}	
 						break;
@@ -854,12 +857,12 @@ class Jevix
 					case '#link':
 						// Ява-скрипт в ссылке
 						if(preg_match('/javascript:/ui', $value)) {
-							$this->eror('Попытка вставить JavaScript в URI');
+							$this->error('Попытка вставить JavaScript в URI');
 							continue(2);
 						}
 						// Первый символ должен быть a-z0-9!
 						if(!preg_match('/^[a-z0-9\/]/ui', $value)) {
-							$this->eror('URI: Первый символ адреса должен быть буквой или цифрой');
+							$this->error('URI: Первый символ адреса должен быть буквой или цифрой');
 							continue(2);
 						}
 						// HTTP в начале если нет
@@ -869,7 +872,7 @@ class Jevix
 					case '#image': 
 						// Ява-скрипт в пути к картинке
 						if(preg_match('/javascript:/ui', $value)) {
-							$this->eror('Попытка вставить JavaScript в пути к изображению');
+							$this->error('Попытка вставить JavaScript в пути к изображению');
 							continue(2);
 						}
 						// HTTP в начале если нет
@@ -877,7 +880,7 @@ class Jevix
 						break;
 						
 					default:
-						$this->eror("Неверное описание атрибута тега в настройке Jevix: $param => $paramAllowedValues");
+						$this->error("Неверное описание атрибута тега в настройке Jevix: $param => $paramAllowedValues");
 						continue(2);
 						break;					
 				}
@@ -969,7 +972,7 @@ class Jevix
 						$this->restoreState();
 						return false;
 					} else {
-						$this->eror('Не ожидалось закрывающегося тега '.$name);
+						$this->error('Не ожидалось закрывающегося тега '.$name);
 					}
 				} else {
 					if($this->state != self::STATE_INSIDE_NOTEXT_TAG) $content.=$this->entities2['<'];
@@ -1243,7 +1246,7 @@ class Jevix
 		return false;
 	}
 	
-	protected function eror($message){
+	protected function error($message){
 		$str = '';
 		$strEnd = min($this->curPos + 8, $this->textLen);
 		for($i = $this->curPos; $i < $strEnd; $i++){
@@ -1259,14 +1262,3 @@ class Jevix
 		);
 	}
 }
-
-///**
-// * Функция chr() для мультибайтовы строк
-// *
-// * @param int $c код символа
-// * @return string символ utf-8
-// * @todo: Remove it. PhpStorm says it is not used at all.
-// */
-//function unichr($c) {
-//    return Util::unichr($c);
-//}

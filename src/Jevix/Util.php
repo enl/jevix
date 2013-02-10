@@ -1,5 +1,7 @@
 <?php
 
+namespace Jevix;
+
 /**
  * Provides utility functions for Jevix
  *
