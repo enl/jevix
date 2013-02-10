@@ -20,12 +20,46 @@ class JevixQuotationsTest extends PHPUnit_Framework_TestCase
         $this->errors = array();
     }
 
-    public function testDoubleQuotes()
+    public function testSkipDoubleQuotes()
     {
         $string = '""Пиво"';
         $expected = '«Пиво»';
 
         $this->assertEquals($expected, $this->jevix->parse($string, $this->errors));
+    }
 
+    public function testReplaceQuotes()
+    {
+        $string = '"Пиво"';
+        $expected = '«Пиво»';
+
+        $this->assertEquals($expected, $this->jevix->parse($string, $this->errors));
+    }
+
+    public function testReplaceNestedQuotes()
+    {
+        $string = 'Обработка "кавычек" и "вложенных "друг в друга" кавычек"';
+        $expected = 'Обработка «кавычек» и «вложенных „друг в друга“ кавычек»';
+
+        $this->assertEquals($expected, $this->jevix->parse($string, $this->errors));
+    }
+
+    public function testSkipOddQuotes()
+    {
+        $string = 'Обработка "кавычек" и "вложенных "друг в друга кавычек". Еще чуть-чуть текста.';
+        $expected = 'Обработка «кавычек» и «вложенных друг в друга кавычек». Еще чуть-чуть текста.';
+
+        $this->assertEquals($expected, $this->jevix->parse($string, $this->errors));
+    }
+
+    public function testSkipAttributeQuotes()
+    {
+        $string = '<a href="http://yandex.ru">"Привет"</a>';
+        $expected = '<a href="http://yandex.ru">«Привет»</a>';
+
+        $this->jevix->cfgAllowTags('a');
+        $this->jevix->cfgAllowTagParams('a', 'href');
+
+        $this->assertEquals($expected, $this->jevix->parse($string, $this->errors));
     }
 }
