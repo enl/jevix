@@ -1,6 +1,11 @@
 <?php
 
+
+
 namespace Jevix;
+
+require_once(dirname(__FILE__).'/Util.php');
+require_once dirname(__FILE__).'/Configuration/Configuration.php';
 
 /**
  * Jevix — средство автоматического применения правил набора текстов, 
@@ -10,55 +15,12 @@ namespace Jevix;
  * http://code.google.com/p/jevix/
  * 
  * @author ur001 <ur001ur001@gmail.com>, http://ur001.habrahabr.ru
- * @version 1.00
- * 
- * История версий:
- * 1.00
- *  + Исправлен баг с закрывающимися тегами приводящий к созданию непарного тега рушащего вёрстку
- * 1.00 RC2
- *  + Небольшая чистка кода
- * 1.00 RC1
- *  + Добавлен символьный класс Jevix::RUS для определния русских символов 
- *  + Авторасстановка пробелов после пунктуации только для кирилицы 
- *  + Добавлена настройка cfgSetTagNoTypography() отключающая типографирование в указанном теге
- *  + Немного переделан алгоритм обработки кавычек. Он стал более строгим
- *  + Знак дюйма 33" больше не превращается в открывающуюся кавычку. Однако варриант "мой 24" монитор" - парсер не переварит.
- * 0.99
- *  + Расширена функциональность для проверки атрибутов тега: 
- *    можно указать тип атрибута ( 'colspan'=>'#int', 'value' => '#text' )
- *    в Jevix, по-умолчанию, определён массив типов для нескольких стандартных атрибутов (src, href, width, height)
- * 0.98
- *  + Расширена функциональность для проверки атрибутов тега: 
- *    можно задавать список дозможных значений атрибута (  'align'=>array('left', 'right', 'center') )
- * 0.97
- *  + Обычные "кавычки" сохраняются как &quote; если они были так написаны
- * 0.96
- *  + Добавлены разрешённые протоколы https и ftp для ссылок (a href="https://...)
- * 0.95
- *  + Исправлено типографирование ?.. и !.. (две точки в конце больше не превращаются в троеточие)
- *  + Отключено автоматическое добавление пробела после точки для латиницы из-за чего невозможно было написать 
- *    index.php или .htaccess
- * 0.94
- *  + Добавлена настройка автодобавления параметров тегов. Непример rel = "nofolow" для ссылок. 
- *    Спасибо Myroslav Holyak (vbhjckfd@gmail.com)
- * 0.93
- * 	+ Исправлен баг с удалением пробелов (например в "123 &mdash; 123")
- *  + Исправлена ошибка из-за которой иногда не срабатывало автоматическое преобразования URL в ссылу
- *  + Добавлена настройка cfgSetAutoLinkMode для отключения автоматического преобразования URL в ссылки
- *  + Автодобавление пробела после точки, если после неё идёт русский символ
- * 0.92
- * 	+ Добавлена настройка cfgSetAutoBrMode. При установке в false, переносы строк не будут автоматически заменяться на BR
- * 	+ Изменена обработка HTML-сущностей. Теперь все сущности имеющие эквивалент в Unicode (за исключением <>)
- *    автоматически преобразуются в символ
- * 0.91
- * 	+ Добавлена обработка преформатированных тегов <pre>, <code>. Для задания используйте cfgSetTagPreformatted()
- *  + Добавлена настройка cfgSetXHTMLMode. При отключении пустые теги будут оформляться как <br>, при включенном - <br/> 
- *	+ Несколько незначительных багфиксов
- * 0.9
- * 	+ Первый бета-релиз
+ * @author Alex Panshin <deadyaga@gmail.com>, http://quadrata.ru
  */
 
-require_once(dirname(__FILE__).'/Util.php');
+use Jevix\Configuration\Configuration;
+
+
 
 class Jevix
 {
@@ -107,15 +69,11 @@ class Jevix
 	protected $curChClass;
 	protected $states;
 	protected $quotesOpened = 0;
-	protected $brAdded = 0;
 	protected $state;
 	protected $tagsStack;
 	protected $openedTag;
 	protected $autoReplace; // Автозамена
-	protected $isXHTMLMode  = true; // <br/>, <img/>
-	protected $isAutoBrMode = true; // \n = <br/>
 	protected $isAutoLinkMode = true;
-	protected $br = "<br/>";
 	
 	protected $noTypoMode = false;
 	
@@ -146,7 +104,22 @@ class Jevix
 	 * @var array
 	 */
 	protected $chClasses = array(0=>512,1=>512,2=>512,3=>512,4=>512,5=>512,6=>512,7=>512,8=>512,9=>32,10=>66048,11=>512,12=>512,13=>66048,14=>512,15=>512,16=>512,17=>512,18=>512,19=>512,20=>512,21=>512,22=>512,23=>512,24=>512,25=>512,26=>512,27=>512,28=>512,29=>512,30=>512,31=>512,32=>32,97=>71,98=>71,99=>71,100=>71,101=>71,102=>71,103=>71,104=>71,105=>71,106=>71,107=>71,108=>71,109=>71,110=>71,111=>71,112=>71,113=>71,114=>71,115=>71,116=>71,117=>71,118=>71,119=>71,120=>71,121=>71,122=>71,65=>71,66=>71,67=>71,68=>71,69=>71,70=>71,71=>71,72=>71,73=>71,74=>71,75=>71,76=>71,77=>71,78=>71,79=>71,80=>71,81=>71,82=>71,83=>71,84=>71,85=>71,86=>71,87=>71,88=>71,89=>71,90=>71,1072=>11,1073=>11,1074=>11,1075=>11,1076=>11,1077=>11,1078=>11,1079=>11,1080=>11,1081=>11,1082=>11,1083=>11,1084=>11,1085=>11,1086=>11,1087=>11,1088=>11,1089=>11,1090=>11,1091=>11,1092=>11,1093=>11,1094=>11,1095=>11,1096=>11,1097=>11,1098=>11,1099=>11,1100=>11,1101=>11,1102=>11,1103=>11,1040=>11,1041=>11,1042=>11,1043=>11,1044=>11,1045=>11,1046=>11,1047=>11,1048=>11,1049=>11,1050=>11,1051=>11,1052=>11,1053=>11,1054=>11,1055=>11,1056=>11,1057=>11,1058=>11,1059=>11,1060=>11,1061=>11,1062=>11,1063=>11,1064=>11,1065=>11,1066=>11,1067=>11,1068=>11,1069=>11,1070=>11,1071=>11,48=>337,49=>337,50=>337,51=>337,52=>337,53=>337,54=>337,55=>337,56=>337,57=>337,34=>57345,39=>16385,46=>1281,44=>1025,33=>1025,63=>1281,58=>1025,59=>1281,1105=>11,1025=>11,47=>257,38=>257,37=>257,45=>257,95=>257,61=>257,43=>257,35=>257,124=>257,);
-			
+
+
+    private $configuration;
+
+    /**
+     * null default value was added only for backward compatibility.
+     *
+     * @param \Jevix\Configuration\Configuration|null $configuration
+     */
+    public function __construct(Configuration $configuration = null) {
+        if (is_null($configuration)) {
+            $configuration = new Configuration();
+        }
+        $this->configuration = $configuration;
+    }
+
 	/**
 	 * Установка конфигурационного флага для одного или нескольких тегов
 	 *
@@ -162,7 +135,7 @@ class Jevix
 				if($createIfNoExists){
 					$this->tagsRules[$tag] = array();
 				} else {
-					throw new Exception("Тег $tag отсутствует в списке разрешённых тегов");
+					throw new \Exception("Тег $tag отсутствует в списке разрешённых тегов");
 				}
 			}
 			$this->tagsRules[$tag][$flag] = $value;
@@ -216,7 +189,7 @@ class Jevix
 	 * @param string|array $params разрешённые параметры
 	 */
 	function cfgAllowTagParams($tag, $params){
-		if(!isset($this->tagsRules[$tag])) throw new Exception("Тег $tag отсутствует в списке разрешённых тегов");
+		if(!isset($this->tagsRules[$tag])) throw new \Exception("Тег $tag отсутствует в списке разрешённых тегов");
 		if(!is_array($params)) $params = array($params);
 		// Если ключа со списком разрешенных параметров не существует - создаём ео
 		if(!isset($this->tagsRules[$tag][self::TR_PARAM_ALLOWED])) {
@@ -237,7 +210,7 @@ class Jevix
 	 * @param string|array $params разрешённые параметры
 	 */
 	function cfgSetTagParamsRequired($tag, $params){
-		if(!isset($this->tagsRules[$tag])) throw new Exception("Тег $tag отсутствует в списке разрешённых тегов");
+		if(!isset($this->tagsRules[$tag])) throw new \Exception("Тег $tag отсутствует в списке разрешённых тегов");
 		if(!is_array($params)) $params = array($params);
 		// Если ключа со списком разрешенных параметров не существует - создаём ео
 		if(!isset($this->tagsRules[$tag][self::TR_PARAM_REQUIRED])) {
@@ -255,7 +228,7 @@ class Jevix
 	 * @param boolean $isChildOnly вложенные теги не могут присутствовать нигде кроме указанного тега
 	 */
 	function cfgSetTagChilds($tag, $childs, $isContainerOnly = false, $isChildOnly = false){
-		if(!isset($this->tagsRules[$tag])) throw new Exception("Тег $tag отсутствует в списке разрешённых тегов");
+		if(!isset($this->tagsRules[$tag])) throw new \Exception("Тег $tag отсутствует в списке разрешённых тегов");
 		if(!is_array($childs)) $childs = array($childs);
 		// Тег является контейнером и не может содержать текст
 		if($isContainerOnly) $this->tagsRules[$tag][self::TR_TAG_CONTAINER] = true;
@@ -266,7 +239,7 @@ class Jevix
 		foreach($childs as $child){
 			$this->tagsRules[$tag][self::TR_TAG_CHILD_TAGS][$child] = true;
 			//  Указанный тег должен сущеаствовать в списке тегов
-			if(!isset($this->tagsRules[$child])) throw new Exception("Тег $child отсутствует в списке разрешённых тегов");
+			if(!isset($this->tagsRules[$child])) throw new \Exception("Тег $child отсутствует в списке разрешённых тегов");
 			if(!isset($this->tagsRules[$child][self::TR_TAG_PARENT])) $this->tagsRules[$child][self::TR_TAG_PARENT] = array();
 			$this->tagsRules[$child][self::TR_TAG_PARENT][$tag] = true;
 			// Указанные разрешённые теги могут находится только внтутри тега-контейнера			
@@ -280,7 +253,7 @@ class Jevix
      * @param string|array $params array of pairs attributeName => attributeValue 
      */ 
     function cfgSetTagParamsAutoAdd($tag, $params){ 
-        if(!isset($this->tagsRules[$tag])) throw new Exception("Tag $tag is missing in allowed tags list"); 
+        if(!isset($this->tagsRules[$tag])) throw new \Exception("Tag $tag is missing in allowed tags list");
         if(!is_array($params)) $params = array($params); 
         if(!isset($this->tagsRules[$tag][self::TR_PARAM_AUTO_ADD])) { 
             $this->tagsRules[$tag][self::TR_PARAM_AUTO_ADD] = array(); 
@@ -302,22 +275,23 @@ class Jevix
 	}
 	
 	/**
-	 * Включение или выключение режима XTML
-	 *
+	 * Sets Xhtml mode. Please use Configuration class methods instead of this
+     *
+     * @deprecated
 	 * @param boolean $isXHTMLMode
 	 */
 	function cfgSetXHTMLMode($isXHTMLMode){
-		$this->br = $isXHTMLMode ? '<br/>' : '<br>';
-		$this->isXHTMLMode = $isXHTMLMode;
+		$this->configuration->setXhtmlMode($isXHTMLMode);
 	}
 	
 	/**
-	 * Включение или выключение режима замены новых строк на <br/>
+	 * Sets automated replacement newlines with BR tag
 	 *
+     * @deprecated Use Configuration::setAutoBrMode($value) instead
 	 * @param boolean $isAutoBrMode
 	 */
 	function cfgSetAutoBrMode($isAutoBrMode){
-		$this->isAutoBrMode = $isAutoBrMode;
+		$this->configuration->setAutoBrMode($isAutoBrMode);
 	}	
 	
 	/**
@@ -346,7 +320,7 @@ class Jevix
 		$this->noTypoMode = false;
 		
 		// Авто растановка BR?
-		if($this->isAutoBrMode) {
+		if($this->configuration->isAutoBrMode()) {
 			$this->text = preg_replace('/<br\/?>(\r\n|\n\r|\n)?/ui', $this->nl, $text);
 		} else {
 			$this->text = $text;
@@ -361,8 +335,7 @@ class Jevix
 		$this->getCh();
 		$content = '';
 		$this->outBuffer='';
-		$this->brAdded=0;
-		$this->tagsStack = array();	
+		$this->tagsStack = array();
 		$this->openedTag = null;
 		$this->errors = array();
 		$this->skipSpaces();
@@ -418,11 +391,11 @@ class Jevix
 	 *
 	 */	
 	protected function restoreState($index = null){
-		if(!count($this->states)) throw new Exception('Конец стека');
+		if(!count($this->states)) throw new \Exception('Конец стека');
 		if($index == null){
 			$state = array_pop($this->states);
 		} else {
-			if(!isset($this->states[$index])) throw new Exception('Неверный индекс стека');
+			if(!isset($this->states[$index])) throw new \Exception('Неверный индекс стека');
 			$state = $this->states[$index];
 			$this->states = array_slice($this->states, 0, $index);
 		}
@@ -915,7 +888,7 @@ class Jevix
 		// Параметры
 		foreach($resParams as $param=>$value) $text.=' '.$param.'="'.$value.'"';
 		// Закрытие тега (если короткий то без контента)
-		$text.= $short && $this->isXHTMLMode ? '/>' : '>';
+		$text.= $short && $this->configuration->isXhtmlMode() ? '/>' : '>';
 		if(isset($tagRules[self::TR_TAG_CONTAINER])) $text .= "\r\n";
 		if(!$short) $text.= $content.'</'.$tag.'>';
 		if($parentTagIsContainer) $text .= "\r\n";
@@ -1178,9 +1151,9 @@ class Jevix
 				$text.=' ';
 				// после пробелов снова возможно новое слово
 				$newWord = true;
-			} elseif ($this->isAutoBrMode && $this->skipNL($brCount)){
+			} elseif ($this->configuration->isAutoBrMode() && $this->skipNL($brCount)){
 				// Перенос строки
-				$br = $this->br.$this->nl;
+				$br = $this->configuration->getLinebreakTag().$this->nl;
 				$text.= $brCount == 1 ? $br : $br.$br;
 				// Помечаем что новая строка и новое слово
 				$newLine = true;
