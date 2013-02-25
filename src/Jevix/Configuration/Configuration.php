@@ -74,4 +74,20 @@ class Configuration
     {
         $this->autoInsertBR = $value;
     }
+
+    protected $symbols = array(
+        'newline' => '\r\n',
+        'ellipsis' => '…',
+        'apostrophe' => '’',
+        'dash' => " — "
+    );
+
+    public function getSymbol($name)
+    {
+        if (!isset($this->symbols[$name])) {
+            throw new \OutOfRangeException("Unknown symbol %s.", $name);
+        }
+
+        return $this->symbols[$name];
+    }
 }

@@ -54,10 +54,6 @@ class Jevix
 	public $entities1 = array();	
 	public $entities2 = array('<'=>'&lt;', '>'=>'&gt;', '"'=>'&quot;');	
 	public $textQuotes = array(array('«', '»'), array('„', '“'));
-	public $dash = " — ";
-	public $apostrof = "’";
-	public $dotes = "…";
-	public $nl = "\r\n";
 	public $defaultTagParamRules = array('href' => '#link', 'src' => '#image', 'width' => '#int', 'height' => '#int', 'text' => '#text', 'title' => '#text');
 	
 	protected $text;
@@ -321,7 +317,7 @@ class Jevix
 		
 		// Авто растановка BR?
 		if($this->configuration->isAutoBrMode()) {
-			$this->text = preg_replace('/<br\/?>(\r\n|\n\r|\n)?/ui', $this->nl, $text);
+			$this->text = preg_replace('/<br\/?>(\r\n|\n\r|\n)?/ui', $this->configuration->getSymbol('newline'), $text);
 		} else {
 			$this->text = $text;
 		}
@@ -995,7 +991,7 @@ class Jevix
 			$this->restoreState();
 			return false;
 		}
-		$dash = $this->dash;
+		$dash = $this->configuration->getSymbol('dash');
 		return true;
 	}
 	
@@ -1008,7 +1004,7 @@ class Jevix
 		// Проверяем ... и !!! и ?.. и !..
 		if($punctuation == '.' && $this->curCh == '.'){
 			while($this->curCh == '.') $this->getCh();
-			$punctuation = $this->dotes;
+			$punctuation = $this->configuration->getSymbol('ellipsis');
 		} elseif($punctuation == '!' && $this->curCh == '!'){
 			while($this->curCh == '!') $this->getCh();
 			$punctuation = '!!!';
@@ -1153,7 +1149,7 @@ class Jevix
 				$newWord = true;
 			} elseif ($this->configuration->isAutoBrMode() && $this->skipNL($brCount)){
 				// Перенос строки
-				$br = $this->configuration->getLinebreakTag().$this->nl;
+				$br = $this->configuration->getLinebreakTag().$this->configuration->getSymbol('newline');
 				$text.= $brCount == 1 ? $br : $br.$br;
 				// Помечаем что новая строка и новое слово
 				$newLine = true;
