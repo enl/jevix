@@ -267,7 +267,7 @@ class Jevix
 	 * @param array $to на
 	 */
 	function cfgSetAutoReplace($from, $to){
-		$this->autoReplace = array('from' => $from, 'to' => $to);
+		$this->configuration->setAutoReplaces(array('from' => $from, 'to' => $to));
 	}
 	
 	/**
@@ -321,11 +321,10 @@ class Jevix
 		} else {
 			$this->text = $text;
 		}
-		
-		
-		if(!empty($this->autoReplace)){
-			$this->text = str_replace($this->autoReplace['from'], $this->autoReplace['to'], $this->text);
-		}
+
+
+        $this->makeAutoReplaces();
+
 		$this->textBuf = $this->strToArray($this->text);
 		$this->textLen = count($this->textBuf);
 		$this->getCh();
@@ -339,8 +338,16 @@ class Jevix
 		$errors = $this->errors;
 		return $content;
 	}
-	
-	/**
+
+    private function makeAutoReplaces()
+    {
+        $replaces = $this->configuration->getAutoReplaces();
+        if (!empty($replaces)) {
+            $this->text = str_replace($replaces['from'], $replaces['to'], $this->text);
+        }
+    }
+
+    /**
 	 * Получение следующего символа из входной строки
 	 * @return string считанный символ
 	 */

@@ -90,4 +90,17 @@ class Configuration
 
         return $this->symbols[$name];
     }
+
+    protected $autoReplaces = array();
+
+    public function setAutoReplaces($autoReplaces)
+    {
+        $this->autoReplaces = $autoReplaces;
+    }
+
+    public function getAutoReplaces()
+    {
+        return $this->autoReplaces;
+    }
+
 }
