@@ -47,7 +47,7 @@ class Configuration
      */
     public function getLinebreakTag()
     {
-        return $this->isXhtmlMode() ? '<br />' : '<br>';
+        return $this->isXhtmlMode() ? '<br/>' : '<br>';
     }
 
     /**
@@ -76,7 +76,7 @@ class Configuration
     }
 
     protected $symbols = array(
-        'newline' => '\r\n',
+        'newline' => PHP_EOL,
         'ellipsis' => '…',
         'apostrophe' => '’',
         'dash' => " — "

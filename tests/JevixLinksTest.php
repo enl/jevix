@@ -55,7 +55,7 @@ class JevixLinksTest extends PHPUnit_Framework_TestCase
         $string = 'Идите вы в <a href="http://yandex.ru">Яндекс</a>.';
         $expected = 'Идите вы в <a href="http://yandex.ru" rel="nofollow">Яндекс</a>.';
 
-        $this->jevix->cfgSetTagParamsAutoAdd('a', array('rel' => 'nofollow'));
+        $this->jevix->cfgSetTagParamDefault('a', 'rel', 'nofollow');
 
         $this->assertEquals($expected, $this->jevix->parse($string, $this->errors));
     }
@@ -73,7 +73,7 @@ class JevixLinksTest extends PHPUnit_Framework_TestCase
     public function testAutoParamsShouldNotReplaceExisting()
     {
         $string = 'Идите вы в <a href="http://yandex.ru" rel="vote-for">Яндекс</a>.';
-        $this->jevix->cfgSetTagParamsAutoAdd('a', array('rel' => 'nofollow'));
+        $this->jevix->cfgSetTagParamDefault('a', 'rel', 'nofollow');
 
         $this->assertEquals($string, $this->jevix->parse($string, $this->errors));
     }

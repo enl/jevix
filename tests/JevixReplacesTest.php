@@ -1,6 +1,8 @@
 <?php
 
+require_once dirname(__FILE__).'/../src/Jevix/Jevix.php';
 
+use Jevix\Jevix;
 
 /**
  * 

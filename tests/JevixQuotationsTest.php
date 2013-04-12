@@ -7,6 +7,10 @@
  * To change this template use File | Settings | File Templates.
  */
 
+require_once dirname(__FILE__).'/../src/Jevix/Jevix.php';
+
+use Jevix\Jevix;
+
 class JevixQuotationsTest extends PHPUnit_Framework_TestCase
 {
     /** @var Jevix */
