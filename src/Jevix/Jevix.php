@@ -1359,54 +1359,47 @@ class Jevix
         return $text != '';
     }
 
+    /**
+     * This function parses URLs from text
+     *
+     * @param &$url
+     * @param &$href
+     * @return bool
+     */
     protected function url(&$url, &$href){
         $this->saveState();
         $url = '';
-        //$name = $this->name();
-        //switch($name)
-        $urlChMask = self::URL | self::ALPHA | self::PUNCTUATUON;
+        $urlChMask = self::URL | self::ALPHA;
 
-        if($this->matchStr('http://')){
-            while($this->curChClass & $urlChMask){
-                $url.= $this->curCh;
-                $this->getCh();
+        foreach (array('http://', 'https://', 'ftp://', 'www.') as $marker) {
+            if ($this->matchStr($marker)) {
+                while ($this->curChClass & $urlChMask) {
+                    $url .= $this->curCh;
+                    $this->getCh();
+                }
+
+                if (!mb_strlen($url, 'UTF-8')) {
+                    $this->restoreState();
+                    return false;
+                }
+
+                // Trailing dot fix
+                if ('.' == substr($url, -1)) {
+                    $url = substr($url, 0, mb_strlen($url, 'UTF-8') - 1);
+                    $this->goToPosition($this->curPos - 1);
+                }
+
+                if ($marker == 'www.') {
+                    $url = 'www.'.$url;
+                    $marker = 'http://';
+                }
+
+                $href = $marker.$url;
+
+                return true;
             }
-
-            if(!mb_strlen($url, 'UTF-8')) {
-                $this->restoreState();
-                return false;
-            }
-
-            $href = 'http://'.$url;
-            return true;
-        } elseif($this->matchStr('https://')){
-            while($this->curChClass & $urlChMask){
-                $url.= $this->curCh;
-                $this->getCh();
-            }
-
-            if(!mb_strlen($url, 'UTF-8')) {
-                $this->restoreState();
-                return false;
-            }
-
-            $href = 'https://'.$url;
-            return true;
-        } elseif($this->matchStr('www.')){
-            while($this->curChClass & $urlChMask){
-                $url.= $this->curCh;
-                $this->getCh();
-            }
-
-            if(!mb_strlen($url, 'UTF-8')) {
-                $this->restoreState();
-                return false;
-            }
-
-            $url = 'www.'.$url;
-            $href = 'http://'.$url;
-            return true;
         }
+
         $this->restoreState();
         return false;
     }

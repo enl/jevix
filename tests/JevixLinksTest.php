@@ -41,13 +41,11 @@ class JevixLinksTest extends PHPUnit_Framework_TestCase
     {
         $this->jevix->cfgSetAutoLinkMode(true);
 
-        $string = 'автозамена ссылок с http:// и www: www.habrahabr.ru, http://google.com/chrome.';
-        $expected = 'автозамена ссылок с http:// и www: <a href="http://www.habrahabr.ru">www.habrahabr.ru</a>, <a href="http://google.com">google.com/chrome</a>.';
+        $string = 'автозамена ссылок с http:// и www: www.habrahabr.ru, http://google.com/chrome. Сами понимаете, работа нелегкая.';
+        $expected = 'автозамена ссылок с http:// и www: <a href="http://www.habrahabr.ru">www.habrahabr.ru</a>, <a href="http://google.com/chrome">google.com/chrome</a>. Сами понимаете, работа нелегкая.';
 
-        $this->assertEquals($expected, $this->jevix->parse($string, $this->errors));
-
-        $this->jevix->cfgSetAutoLinkMode(false);
-        $this->assertEquals($string, $this->jevix->parse($string, $errors));
+        $actual = $this->jevix->parse($string, $this->errors);
+        $this->assertEquals($expected, $actual);
     }
 
     public function testAddsRelNoFollowIfConfigured()
